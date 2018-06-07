@@ -1,0 +1,240 @@
+
+<html>
+	<head>
+		<title>Pollencast</title>
+		<script src="http://cdn.jsdelivr.net/jquery/1.11.1/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
+		  integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+		  crossorigin=""/>
+		<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
+		  integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
+		  crossorigin=""></script>
+
+	</head>
+	<body>
+		<div style='width:auto;height:30%;'>
+			<table style='width:100%;height:100%;'><tbody><tr>
+				<td onclick="switchPollen()" style='width:50%;background-size:cover;text-align:center;' id='pollen'></td>
+				<td onclick="updateForecast(-1)" id='current' style='width:50%;text-align:center;font-size:250%;'></td>
+			</tr></tbody></table>
+		</div>
+		<div style='width:auto;height:20%;'>
+			<table style='width:100%;height:100%;'><tbody><tr>
+				<td id='day0' style='width:25%;text-align:center;' onclick="updateForecast(0)"></td>
+				<td id='day1' style='width:25%;text-align:center;' onclick="updateForecast(1)"></td>
+				<td id='day2' style='width:25%;text-align:center;' onclick="updateForecast(2)"></td>
+				<td id='day3' style='width:25%;text-align:center;' onclick="updateForecast(3)"></td>
+			</tr></tbody></table>
+		</div>
+		<div style='width:auto;height:10%;'>
+			<table style='width:100%;height:100%;'><tbody><tr>
+				<td id='hour0' style='width:4.16%;text-align:center;' onclick="updateMap(0)"></td>
+				<td id='hour1' style='width:4.16%;text-align:center;' onclick="updateMap(1)"></td>
+				<td id='hour2' style='width:4.16%;text-align:center;' onclick="updateMap(2)"></td>
+				<td id='hour3' style='width:4.16%;text-align:center;' onclick="updateMap(3)"></td>
+				<td id='hour4' style='width:4.16%;text-align:center;' onclick="updateMap(4)"></td>
+				<td id='hour5' style='width:4.16%;text-align:center;' onclick="updateMap(5)"></td>
+				<td id='hour6' style='width:4.16%;text-align:center;' onclick="updateMap(6)"></td>
+				<td id='hour7' style='width:4.16%;text-align:center;' onclick="updateMap(7)"></td>
+				<td id='hour8' style='width:4.16%;text-align:center;' onclick="updateMap(8)"></td>
+				<td id='hour9' style='width:4.16%;text-align:center;' onclick="updateMap(9)"></td>
+				<td id='hour10' style='width:4.16%;text-align:center;' onclick="updateMap(10)"></td>
+				<td id='hour11' style='width:4.16%;text-align:center;' onclick="updateMap(11)"></td>
+				</tr><tr>
+				<td id='hour12' style='width:4.16%;text-align:center;' onclick="updateMap(12)"></td>
+				<td id='hour13' style='width:4.16%;text-align:center;' onclick="updateMap(13)"></td>
+				<td id='hour14' style='width:4.16%;text-align:center;' onclick="updateMap(14)"></td>
+				<td id='hour15' style='width:4.16%;text-align:center;' onclick="updateMap(15)"></td>
+				<td id='hour16' style='width:4.16%;text-align:center;' onclick="updateMap(16)"></td>
+				<td id='hour17' style='width:4.16%;text-align:center;' onclick="updateMap(17)"></td>
+				<td id='hour18' style='width:4.16%;text-align:center;' onclick="updateMap(18)"></td>
+				<td id='hour19' style='width:4.16%;text-align:center;' onclick="updateMap(19)"></td>
+				<td id='hour20' style='width:4.16%;text-align:center;' onclick="updateMap(20)"></td>
+				<td id='hour21' style='width:4.16%;text-align:center;' onclick="updateMap(21)"></td>
+				<td id='hour22' style='width:4.16%;text-align:center;' onclick="updateMap(22)"></td>
+				<td id='hour23' style='width:4.16%;text-align:center;' onclick="updateMap(23)"></td>
+			</tr></tbody></table>
+
+		<div>
+			<table style='height:100%;width:100%;'><tbody><tr>
+				<td style='height:100%;width:95%;'><div id='map' style='width:100%;height:100%;'></div></td>
+				<td style='height:100%;width:5%;'><img src='legend.jpg' style='height:40%;'></td>
+			</tr></tbody></table>
+		</div>
+		<script type='text/javascript'>
+		daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+
+		var gpsCoords = [60.1699, 24.9384];
+		gpsRes = 0.01
+		maxDeltaHour = 24;
+		activeLayer = 'Grass pollen';
+		pollenList = ['Birch pollen','Grass pollen','Olive pollen'];
+		updatePollen();
+
+		var map = L.map('map').setView(gpsCoords, 0);
+		map.fitBounds([[30,-25],[70,45]]);
+		map.setMaxBounds([[30,-25],[70,45]]);
+		map.setMaxZoom(17);
+		map.setMinZoom(3);
+		map.options.crs = L.CRS.EPSG4326;
+
+		camsowsurl = "https://geoservices.regional.atmosphere.copernicus.eu/services/CAMS50-ENSEMBLE-FORECAST-01-EUROPE-WMS?"
+
+		dlrsowsurl = "http://geoservice.dlr.de/eoc/basemap/wms?"
+			var dlrBorders =new L.TileLayer.WMS(dlrsowsurl, {
+					'version':'1.3.0',
+					'layers':'tm:tm_world_borders',
+					'format':'image/png',
+					'REQUEST':'GetMap',
+					'transparent':true,
+					'attribution':'DLR (c)'
+				}
+			);
+
+		dlrBorders.addTo(map);
+		dlrBorders.setZIndex(5)
+
+		myLoc = L.marker(gpsCoords,{draggable:true}).bindPopup('Your location').addTo(map);
+		myLoc.on("dragend",function() {updateForecast(activeDay)});
+		map.on("click",function(e) {myLoc.setLatLng(e.latlng);updateForecast(activeDay);});
+
+		var now = updateTime()[0];
+		var before = updateTime()[1];
+		var runBaseTime = before.toISOString().split('.')[0]+"Z";
+		var validTime = now.toISOString().split('.')[0]+"Z";
+		createPollenLayer(runBaseTime,validTime);
+		updateForecast(-1);
+
+		setInterval(function() {updateForecast(activeDay)},10000);
+
+		function updateTime(){
+			var now = new Date();
+			now.setMinutes(0)
+			now.setSeconds(0)
+			now.setMilliseconds(0)
+			now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+			var before = new Date();
+			before.setMinutes(0)
+			before.setSeconds(0)
+			before.setMilliseconds(0)
+			before.setHours(before.getHours()-12)
+			before.setHours(0);
+			before.setMinutes(now.getMinutes() - before.getTimezoneOffset());
+			return [now,before];
+		}
+
+		function switchPollen(){
+			if (pollenList.indexOf(activeLayer) == pollenList.length-1){
+				activeLayer = pollenList[0];
+			} else {
+				activeLayer = pollenList[pollenList.indexOf(activeLayer)+1];
+				}
+			updatePollen();
+			updateForecast(activeDay);
+			updatePollenLayers(runBaseTime,validTime);
+		}
+
+		function updatePollen(){
+			document.getElementById('pollen').style.backgroundImage = "url(\""+activeLayer.split(' ')[0] + ".jpg\")";
+		}
+
+		function updateForecast(dayForHours){
+			var now = updateTime()[0];
+			var before = updateTime()[1];
+			var runBaseTime = before.toISOString().split('.')[0]+"Z";
+			var validTime = now.toISOString().split('.')[0]+"Z";
+			document.getElementById('current').style.backgroundImage = "url(\""+getDataURLByCoords([myLoc.getLatLng()['lat'],myLoc.getLatLng()['lng']],gpsRes,activeLayer,runBaseTime,validTime)+"\")"
+			document.getElementById('current').innerHTML = daysOfWeek[now.getDay()] + '<br>' + validTime.substring(11,16);
+			if(dayForHours == -1){
+				activeHour = parseInt(validTime.substring(11,13));
+				dayForHours = 0;
+			}
+			for (d = 0; d < 4; d++) {
+				var now = updateTime()[0];
+				now.setDate(now.getDate()+d);
+				now.setHours(12);
+				validTime = now.toISOString().split('.')[0]+"Z";
+				document.getElementById('day'+d).style.backgroundImage = "url(\""+getDataURLByCoords([myLoc.getLatLng()['lat'],myLoc.getLatLng()['lng']],gpsRes,activeLayer,runBaseTime,validTime)+"\")"
+				document.getElementById('day'+d).innerHTML = daysOfWeek[now.getDay()] + "<br>12:00";
+			}
+			for (h = 0; h < 24; h++) {
+				var now = updateTime()[0];
+				now.setDate(now.getDate()+dayForHours);
+				now.setHours(h)
+				validTime = now.toISOString().split('.')[0]+"Z";
+				document.getElementById('hour'+h).style.backgroundImage = "url(\""+getDataURLByCoords([myLoc.getLatLng()['lat'],myLoc.getLatLng()['lng']],gpsRes,activeLayer,runBaseTime,validTime)+"\")"
+				document.getElementById('hour'+h).innerHTML = now.toString().split(' ')[0] + '<br>' + now.toString().split(' ')[4].substring(0,5);
+			}
+			activeDay = dayForHours;
+			updateMap(activeHour);
+		}
+
+
+		function updateMap(hourForMap){
+			var before = updateTime()[1];
+			var runBaseTime = before.toISOString().split('.')[0]+"Z";
+			var now = updateTime()[0];
+			now.setDate(now.getDate()+activeDay);
+			now.setHours(hourForMap);
+			validTime = now.toISOString().split('.')[0]+"Z";
+			updatePollenLayers(runBaseTime,validTime);
+			activeHour = hourForMap;
+		}
+
+		function getDataURLByCoords(coords,resolution,activeLayer,runBaseTime,validTime){
+			var locLat = coords[0];
+			var locLon = coords[1];
+			var url="https://geoservices.regional.atmosphere.copernicus.eu/services/CAMS50-ENSEMBLE-FORECAST-01-EUROPE-WMS?&service=WMS&request=GetMap&layers=";
+			url = url + getLayers(activeLayer);
+			url = url + "&styles=";
+			url = url + getStyles(activeLayer);
+			url = url +"&format=image%2Fpng&transparent=true&version=1.3.0&DIM_REFERENCE_TIME=";
+			url = url + runBaseTime;
+			url = url +"&TIME=";
+			url = url + validTime;
+			url = url + "&TOKEN=" + APIkey + "&REQUEST=GetMap&width=10&height=10&crs=EPSG%3A4326&bbox=";
+			url = url + (locLat-resolution/2.0)+","+(locLon-resolution/2.0)+","+(locLat+resolution/2.0)+","+(locLon+resolution/2.0);
+			return url;
+		}
+		function getLayers(activeLayer) {
+			var pollenType = activeLayer.split(' ')[0];
+			var layerbase = 'POLLEN__GROUND_OR_WATER_SURFACE';
+			var layers = pollenType.toUpperCase() + layerbase;
+  			return layers;
+		}
+
+		function getStyles(activeLayer) {
+			var pollenType = activeLayer.split(' ')[0];
+			var stylesBaseB = 'C_POL_';
+			var stylesBaseE = '__GROUND__SHADING';
+			var styles = stylesBaseB + pollenType.toUpperCase() + stylesBaseE;
+  			return styles;
+		}
+
+		function createPollenLayer (runBaseTime,validTime){
+			pollenLayer = new L.TileLayer.WMS(camsowsurl, {
+				'version':'1.3.0',
+				'layers': getLayers(activeLayer),
+				'styles': getStyles(activeLayer),
+				'DIM_REFERENCE_TIME': runBaseTime,
+				'TIME': validTime,
+				'format':'image/png',
+				'TOKEN': APIkey,
+				'REQUEST':'GetMap',
+				'transparent':true,
+				'attribution':'Copernicus (c)'
+				}
+			);
+			pollenLayer.addTo(map);
+		}
+
+		function updatePollenLayers(runBaseTime,validTime){
+			pollenLayer.removeFrom(map);
+			createPollenLayer(runBaseTime,validTime);
+		}
+
+		</script>
+
+	</body>
+</html>
