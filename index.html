@@ -69,7 +69,7 @@
 		gpsRes = 0.01
 		maxDeltaHour = 24;
 		activeLayer = 'Grass pollen';
-		pollenList = ['Birch pollen','Grass pollen','Olive pollen'];
+		pollenList = ['Birch pollen','Grass pollen','Olive pollen','Ragweed pollen'];
 		updatePollen();
 
 		var map = L.map('map').setView(gpsCoords, 0);
@@ -222,7 +222,7 @@
 				'TOKEN': "public",
 				'REQUEST':'GetMap',
 				'transparent':true,
-				'attribution':'Copernicus (c)'
+				'attribution':'Copernicus, ECMWF (c)'
 				}
 			);
 			pollenLayer.addTo(map);
