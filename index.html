@@ -79,7 +79,7 @@
 		map.setMinZoom(3);
 		map.options.crs = L.CRS.EPSG4326;
 
-		camsowsurl = "https://geoservices.regional.atmosphere.copernicus.eu/services/CAMS50-ENSEMBLE-FORECAST-01-EUROPE-WMS?"
+		camsowsurl = "https://apps.ecmwf.int/wms/?"
 
 		dlrsowsurl = "http://geoservice.dlr.de/eoc/basemap/wms?"
 			var dlrBorders =new L.TileLayer.WMS(dlrsowsurl, {
@@ -185,30 +185,30 @@
 		function getDataURLByCoords(coords,resolution,activeLayer,runBaseTime,validTime){
 			var locLat = coords[0];
 			var locLon = coords[1];
-			var url="https://geoservices.regional.atmosphere.copernicus.eu/services/CAMS50-ENSEMBLE-FORECAST-01-EUROPE-WMS?&service=WMS&request=GetMap&layers=";
+			var url="https://apps.ecmwf.int/wms/?&service=WMS&request=GetMap&layers=";
 			url = url + getLayers(activeLayer);
 			url = url + "&styles=";
 			url = url + getStyles(activeLayer);
-			url = url +"&format=image%2Fpng&transparent=true&version=1.3.0&DIM_REFERENCE_TIME=";
-			url = url + runBaseTime;
+			url = url +"&format=image%2Fpng&transparent=true&version=1.3.0";
 			url = url +"&TIME=";
 			url = url + validTime;
-			url = url + "&TOKEN=" + APIkey + "&REQUEST=GetMap&width=10&height=10&crs=EPSG%3A4326&bbox=";
+			url = url + "&TOKEN=" + "public" + "&REQUEST=GetMap&width=10&height=10&crs=EPSG%3A4326&bbox=";
 			url = url + (locLat-resolution/2.0)+","+(locLon-resolution/2.0)+","+(locLat+resolution/2.0)+","+(locLon+resolution/2.0);
 			return url;
 		}
 		function getLayers(activeLayer) {
 			var pollenType = activeLayer.split(' ')[0];
-			var layerbase = 'POLLEN__GROUND_OR_WATER_SURFACE';
-			var layers = pollenType.toUpperCase() + layerbase;
+			var layerbaseB = 'composition_europe_pol_';
+			var layerbaseE = '_forecast_surface';
+			var layers = layerbaseB + pollenType.toLowerCase() + layerbaseE;
   			return layers;
 		}
 
 		function getStyles(activeLayer) {
 			var pollenType = activeLayer.split(' ')[0];
-			var stylesBaseB = 'C_POL_';
-			var stylesBaseE = '__GROUND__SHADING';
-			var styles = stylesBaseB + pollenType.toUpperCase() + stylesBaseE;
+			var stylesBaseB = 'sh_pol_';
+			var stylesBaseE = '_surface_concentration';
+			var styles = stylesBaseB + pollenType.toLowerCase() + stylesBaseE;
   			return styles;
 		}
 
@@ -217,10 +217,9 @@
 				'version':'1.3.0',
 				'layers': getLayers(activeLayer),
 				'styles': getStyles(activeLayer),
-				'DIM_REFERENCE_TIME': runBaseTime,
 				'TIME': validTime,
 				'format':'image/png',
-				'TOKEN': APIkey,
+				'TOKEN': "public",
 				'REQUEST':'GetMap',
 				'transparent':true,
 				'attribution':'Copernicus (c)'
